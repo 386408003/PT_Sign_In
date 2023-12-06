@@ -117,56 +117,18 @@ def get_cron_from_time(ts):
     # 获取秒数
     second = date_obj.second
     # 构建青龙面板可用的 cron 表达式
+    check_in_type = conf.get("check_in_type", fallback='minute')
     if check_in_type == 'minute':
-        minute = minute + 1
         return f"{minute} {hour} {day} {month} ?"
     else:
         return f"{second} {minute} {hour} {day} {month} ?"
 
 
-# 打卡（按秒）
-def check_in_second():
-    # 朱雀一键释放技能
-    character_fire()
+# 朱雀一键释放技能
+def check_in():
     # 获取下一次任务执行时间
     min_next_time = get_min_next_time()
-    # 加 5 秒缓冲时间
-    min_next_time = min_next_time + 5
-    print('首次计算下次执行时间为：', min_next_time)
-    # 最大重试次数（由于前面的5秒缓冲，循环中2秒请求一次，所以最好不要小于3）
-    max_retry = int(conf.get("max_retry"))
-    # 当前重试次数
-    current_retry = 0
-    # 循环判断是否需要再次执行（触发免除冷却时间技能或执行失败重试几次）
-    while True:
-        # 当前时间比最小技能释放时间小或相等（结束循环，因为前面有5秒缓冲时间）
-        if min_next_time >= time.time():
-            break  # 结束循环
-        if current_retry > max_retry:
-            # 可在此处添加邮件通知，结束循环
-            break
-        # 延迟2秒，防止刷新频率过高
-        time.sleep(2)
-        print('执行技能时间：', datetime.now().timestamp())
-        # 朱雀一键释放技能
-        character_fire()
-        # 获取下一次任务执行时间
-        min_next_time = get_min_next_time()
-        current_retry = current_retry + 1
-        print('重新计算下次执行时间为：', min_next_time)
-    cron = get_cron_from_time(min_next_time)
-    # 设置下次定时任务执行时间
-    qinglong.QL().update_cron(cron)
-
-
-# 打卡（按分钟）
-def check_in_minute():
-    # 朱雀一键释放技能
-    print('执行技能时间：', datetime.now().timestamp())
-    character_fire()
-    # 获取下一次任务执行时间
-    min_next_time = get_min_next_time()
-    print('首次计算下次执行时间为：', min_next_time)
+    print('首次计算下次执行时间为：', min_next_time, "\n")
     # 最大重试次数（防止死循环）
     max_retry = int(conf.get("max_retry", fallback=5))
     # 当前重试次数
@@ -189,11 +151,12 @@ def check_in_minute():
             # 获取下一次任务执行时间
             min_next_time = get_min_next_time()
         # 最小技能释放时间大于当前时间一分钟跳出循环
-        elif min_next_time >= now_ts + 60:
+        elif min_next_time > now_ts + 60:
             break
         # 一分钟内的就等它一分钟，给它执行了
         else:
-            time.sleep(min_next_time - now_ts + 2)
+            # 加一秒缓冲时间
+            time.sleep(min_next_time - now_ts + 1)
             print('执行技能时间：', datetime.now().timestamp())
             # 朱雀一键释放技能
             character_fire()
@@ -210,8 +173,4 @@ if __name__ == '__main__':
     # 经测试青龙面板 v2.15.16 版本支持输入秒，但不会触发执行
     # 由于最开始是按秒实现的，既然实现了，也不想删除了，万一只是是我哪里操作不对，又或者是这个版本的面板存在的 BUG 呢
     # 只在开发中进行了自测，因为面板不支持，没有经过实际环境测试，实际环境手动单次触发没有问题
-    check_in_type = conf.get("check_in_type", fallback='minute')
-    if check_in_type == 'minute':
-        check_in_minute()
-    else:
-        check_in_second()
+    check_in()
