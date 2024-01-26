@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+@ Author     : zhufeng
+@ Time       : 2023年12月05日
+@ File       : qinglong.py
+@ Description: 青龙面板操作模块
+"""
+
 import re
 import json
 import time

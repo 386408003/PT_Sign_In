@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 import time
+import requests
 from datetime import datetime
 from src.commons import config, qinglong
-import requests
 
 # 设置配置文件的 Section
 section = 'zhuque'
 # 请求头
 headers = {
     'Referer': 'https://zhuque.in/gaming/genshin/character/list',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                  'Chrome/117.0.0.0 Safari/537.36',
     'X-Csrf-Token': config.read_config(section, 'csrf_token')
 }
 # Cookies
@@ -167,10 +168,3 @@ def check_in():
     cron = get_cron_from_time(min_next_time)
     # 设置下次定时任务执行时间
     qinglong.QL().update_cron(cron)
-
-
-if __name__ == '__main__':
-    # 经测试青龙面板 v2.15.16 版本支持输入秒，但不会触发执行
-    # 由于最开始是按秒实现的，既然实现了，也不想删除了，万一只是是我哪里操作不对，又或者是这个版本的面板存在的 BUG 呢
-    # 只在开发中进行了自测，因为面板不支持，没有经过实际环境测试，实际环境手动单次触发没有问题
-    check_in()
