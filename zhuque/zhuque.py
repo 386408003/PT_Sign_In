@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
 import time
 from datetime import datetime
+from src.commons import config, qinglong
 import requests
-import qinglong
 
-# 获取配置类
-conf = qinglong.QL().conf["zhuque"]
+# 设置配置文件的 Section
+section = 'zhuque'
 # 请求头
 headers = {
     'Referer': 'https://zhuque.in/gaming/genshin/character/list',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-    'X-Csrf-Token': conf.get('csrf_token')
+    'X-Csrf-Token': config.read_config(section, 'csrf_token')
 }
 # Cookies
 cookies = {
-    'connect.sid': conf.get('cookie')
+    'connect.sid': config.read_config(section, 'cookie')
 }
 # 技能类型
 magic_type = {
-    1: "获得灵石",
-    2: "灵石加成",
-    3: "免除冷却",
-    4: "双倍灵石"
+    1: '获得灵石',
+    2: '灵石加成',
+    3: '免除冷却',
+    4: '双倍灵石'
 }
 
 
@@ -72,7 +72,7 @@ def get_min_next_time():
             # 时间样例：1701162076
             next_time = info['next_time']
             level = info['level']
-            # 1: "获得灵石", 2: "灵石加成", 技能参与计算最小时间
+            # 1: '获得灵石', 2: '灵石加成', 技能参与计算最小时间
             # 其中 灵石加成 这个技能单个角色加成10%，两个角色就会叠加为20%，所以时间到即可执行，无需考虑时间间隔
             # 这个技能类型让我一度以为我的代码逻辑有问题，太坑了
             # 3 和 4 这俩技能释放也不会修改技能时间，还好一开始我就设置了最大超时次数，要不一直在那获取时间释放技能，就 GG 了
@@ -80,7 +80,7 @@ def get_min_next_time():
                 min_time = min(min_time, next_time)
             # 格式化时间，打印角色列表
             # next_timestamp = time.localtime(next_time)
-            # next_time = time.strftime("%Y-%m-%d %H:%M:%S", next_timestamp)
+            # next_time = time.strftime('%Y-%m-%d %H:%M:%S', next_timestamp)
             # 打印所有角色的信息
             # print('角色品级：', rank, '星，等级：', level, '级，技能：', magic_type[magic], '，下次技能时间：', next_time, '角色名：', name)
     return min_time
@@ -90,8 +90,8 @@ def get_min_next_time():
 def character_fire():
     url = 'https://zhuque.in/api/gaming/fireGenshinCharacterMagic'
     data = {
-        "all": 1,
-        "resetModal": True
+        'all': 1,
+        'resetModal': True
     }
     response = post(url, data).json()
     status = response['status']
@@ -117,20 +117,20 @@ def get_cron_from_time(ts):
     # 获取秒数
     second = date_obj.second
     # 构建青龙面板可用的 cron 表达式
-    check_in_type = conf.get("check_in_type", fallback='minute')
+    check_in_type = config.read_config(section, 'check_in_type', fallback='minute')
     if check_in_type == 'minute':
-        return f"{minute} {hour} {day} {month} ?"
+        return f'{minute} {hour} {day} {month} ?'
     else:
-        return f"{second} {minute} {hour} {day} {month} ?"
+        return f'{second} {minute} {hour} {day} {month} ?'
 
 
 # 朱雀一键释放技能
 def check_in():
     # 获取下一次任务执行时间
     min_next_time = get_min_next_time()
-    print('首次计算下次执行时间为：', min_next_time, "\n")
+    print('首次计算下次执行时间为：', min_next_time, '\n')
     # 最大重试次数（防止死循环）
-    max_retry = int(conf.get("max_retry", fallback=5))
+    max_retry = int(config.read_config(section, 'max_retry', fallback=5))
     # 当前重试次数
     current_retry = 1
     # 循环判断是否需要再次执行（触发免除冷却时间技能或执行失败重试几次）
@@ -163,7 +163,7 @@ def check_in():
             # 获取下一次任务执行时间
             min_next_time = get_min_next_time()
         current_retry = current_retry + 1
-        print('重新计算下次执行时间为：', min_next_time, "\n")
+        print('重新计算下次执行时间为：', min_next_time, '\n')
     cron = get_cron_from_time(min_next_time)
     # 设置下次定时任务执行时间
     qinglong.QL().update_cron(cron)
