@@ -2,7 +2,8 @@
 import time
 import requests
 from datetime import datetime
-from src.commons import config, qinglong
+from src.commons.config import read_config
+from src.commons.qinglong import QL
 
 # 设置配置文件的 Section
 section = 'zhuque'
@@ -11,11 +12,11 @@ headers = {
     'Referer': 'https://zhuque.in/gaming/genshin/character/list',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                   'Chrome/117.0.0.0 Safari/537.36',
-    'X-Csrf-Token': config.read_config(section, 'csrf_token')
+    'X-Csrf-Token': read_config(section, 'csrf_token')
 }
 # Cookies
 cookies = {
-    'connect.sid': config.read_config(section, 'cookie')
+    'connect.sid': read_config(section, 'cookie')
 }
 # 技能类型
 magic_type = {
@@ -49,6 +50,8 @@ def post(url, data):
         session.cookies.update(cookies)
         response = session.post(url, headers=headers, data=data)
         if response.status_code == 200:
+            return response
+        elif response.status_code == 400 and 'trainGenshinCharacter' in url:
             return response
         else:
             print(response, '响应异常！')
@@ -103,6 +106,22 @@ def character_fire():
         print('批量释放失败')
 
 
+# 批量升级，顶级 80
+def character_train():
+    url = 'https://zhuque.in/api/gaming/trainGenshinCharacter'
+    data = {
+        'resetModal': 'false',
+        'level': 80
+    }
+    # {"code":"INSUFFICIENT_BONUS","status":400}
+    response = post(url, data).json()
+    status = response['status']
+    if status == 400:
+        print('批量升级成功，灵石不足')
+    else:
+        print('批量失败失败')
+
+
 # 通过时间戳转换为青龙面板 cron 表达式
 def get_cron_from_time(ts):
     # 将时间戳转换为 datetime 对象
@@ -118,7 +137,7 @@ def get_cron_from_time(ts):
     # 获取秒数
     second = date_obj.second
     # 构建青龙面板可用的 cron 表达式
-    check_in_type = config.read_config(section, 'check_in_type', fallback='minute')
+    check_in_type = read_config(section, 'check_in_type', fallback='minute')
     if check_in_type == 'minute':
         return f'{minute} {hour} {day} {month} ?'
     else:
@@ -131,7 +150,7 @@ def check_in():
     min_next_time = get_min_next_time()
     print('首次计算下次执行时间为：', min_next_time, '\n')
     # 最大重试次数（防止死循环）
-    max_retry = int(config.read_config(section, 'max_retry', fallback=5))
+    max_retry = int(read_config(section, 'max_retry', fallback=5))
     # 当前重试次数
     current_retry = 1
     # 循环判断是否需要再次执行（触发免除冷却时间技能或执行失败重试几次）
@@ -167,4 +186,4 @@ def check_in():
         print('重新计算下次执行时间为：', min_next_time, '\n')
     cron = get_cron_from_time(min_next_time)
     # 设置下次定时任务执行时间
-    qinglong.QL().update_cron(cron)
+    QL().update_cron(cron)

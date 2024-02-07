@@ -1,2 +1,4 @@
 */__pycache__/*
 logs
+config/settings.ini
+config/settings_sign.ini

@@ -5,13 +5,12 @@
 @ File       : qinglong.py
 @ Description: 青龙面板操作模块
 """
-
 import re
 import json
 import time
 import requests
 from src.commons.log import logger
-from src.commons import config
+from src.commons.config import read_config, write_config, save_config
 
 
 # 更新到青龙面板
@@ -24,18 +23,18 @@ from src.commons import config
 class QL:
     def __init__(self, ck=None, phone=None):
         self.section = 'qinglong'
-        self.host = config.read_config(self.section, 'host')
-        self.client_id = config.read_config(self.section, 'client_id')
-        self.client_secret = config.read_config(self.section, 'client_secret')
+        self.host = read_config(self.section, 'host')
+        self.client_id = read_config(self.section, 'client_id')
+        self.client_secret = read_config(self.section, 'client_secret')
         self.ck = ck
         self.phone = phone
         self.token = None
-        expire_date_str = config.read_config(self.section, 'expire_date')
+        expire_date_str = read_config(self.section, 'expire_date')
         if expire_date_str is not None:
             self.expire_date = float(expire_date_str)
             # 没过期就从配置文件取，过期了重新获取
             if time.time() < self.expire_date:
-                self.token = config.read_config(self.section, 'token')
+                self.token = read_config(self.section, 'token')
             else:
                 self.token = self.get_token()
         else:
@@ -49,10 +48,10 @@ class QL:
             logger.info('获取青龙面板的 Token: {}', response)
             # 获取 Token 并设置缓存到配置文件
             token = response['data']['token']
-            config.write_config(self.section, 'token', token)
+            write_config(self.section, 'token', token)
             # 29天重新获取
-            config.write_config(self.section, 'expire_date', str(time.time() + 29*24*60*60))
-            config.save_config()
+            write_config(self.section, 'expire_date', str(time.time() + 29*24*60*60))
+            save_config()
             return token
         else:
             return self.token
@@ -142,16 +141,16 @@ class QL:
     def update_cron(self, cron):
         t = int(round(time.time() * 1000))
         url = self.host + 'open/crons?t=' + str(t)
-        command = config.read_config(self.section, 'task_label')
+        command = read_config(self.section, 'task_label')
         arr = []
         if command is not None:
             arr = command.split(',')
         payload = json.dumps({
-            'name': config.read_config(self.section, 'task_name'),
-            'command': config.read_config(self.section, 'task_command'),
+            'name': read_config(self.section, 'task_name'),
+            'command': read_config(self.section, 'task_command'),
             'schedule': cron,
             'labels': arr,
-            'id': config.read_config(self.section, 'task_id')
+            'id': read_config(self.section, 'task_id')
         })
         headers = {
             'Content-Type': 'application/json',
