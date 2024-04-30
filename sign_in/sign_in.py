@@ -29,11 +29,11 @@ def get(url, cookies, headers):
         if response.status_code == 200:
             return response
         else:
-            print(response, '响应异常！')
+            print(f'网站：{url} 响应异常，错误码：{response.status_code}')
             return response
             # exit()
     except Exception as e:
-        print('请求异常！！！')
+        print(f'网站：{url} 请求异常！！！')
         print(e)
 
 
@@ -46,10 +46,11 @@ def post(url, data, cookies, headers):
         if response.status_code == 200:
             return response
         else:
-            print(response, '响应异常！')
-            exit()
+            print(f'网站：{url} 响应异常，错误码：{response.status_code}')
+            return response
+            # exit()
     except Exception as e:
-        print('请求异常！！！')
+        print(f'网站：{url} 请求异常！！！')
         print(e)
 
 
