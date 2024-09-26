@@ -2,8 +2,8 @@
 import time
 import requests
 from datetime import datetime
-from src.commons.config import read_config
-from src.commons.qinglong import QL
+from commons.config import read_config
+from commons.qinglong import QL
 
 # 设置配置文件的 Section
 section = 'zhuque'

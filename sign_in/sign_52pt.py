@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import requests
 from lxml import etree
-from src.commons.log import logger
+from commons.log import logger
 
 # 题库
 questions = [

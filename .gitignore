@@ -1,4 +1,6 @@
 */__pycache__/*
+__pycache__
+.idea
 logs
 config/settings.ini
 config/settings_sign.ini

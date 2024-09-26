@@ -9,8 +9,8 @@ import re
 import json
 import time
 import requests
-from src.commons.log import logger
-from src.commons.config import read_config, write_config, save_config
+from commons.log import logger
+from commons.config import read_config, write_config, save_config
 
 
 # 更新到青龙面板

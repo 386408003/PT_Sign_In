@@ -6,7 +6,7 @@
 @ Description: 配置文件模块
 """
 import configparser
-from src.commons.log import logger
+from commons.log import logger
 
 
 # 对配置文件的内容进行一些预处理，例如将键和节名称转换为小写。

@@ -1,8 +1,8 @@
-from src.commons.log import logger
-from src.commons.qinglong import QL
+from commons.log import logger
+from commons.qinglong import QL
+from commons.config import read_section, read_config
 from zhuque.zhuque import check_in, character_train
 from sign_in.sign_in import init_web_sites
-from commons.config import read_section, read_config
 
 
 if __name__ == '__main__':

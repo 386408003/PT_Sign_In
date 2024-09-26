@@ -4,8 +4,8 @@ import requests
 from lxml import etree
 from ast import literal_eval
 from urllib.parse import urlparse, urlencode
-from src.commons.config_sign import read_section, read_config
-from src.sign_in.sign_52pt import sign_in
+from commons.config_sign import read_section, read_config
+from sign_in.sign_52pt import sign_in
 
 section = 'Standard'
 # 获取配置文件中的 UA 信息
@@ -219,6 +219,9 @@ class WebSite:
             url = f"{parsed_url.scheme}://{parsed_url.netloc}/shoutbox.php?{urlencode(data)}"
             response = get(url, self.cookie, self.get_header())
             # 处理返回值，并将喊话结果保存到对象属性中
-            self.is_shout_success(response)
+            if response is not None:
+                self.is_shout_success(response)
+            else:
+                print(f"喊话内容：{msg['msg']}，喊话失败！")
             # 防止喊话过快
             time.sleep(2)
